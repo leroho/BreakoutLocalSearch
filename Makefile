@@ -1,5 +1,5 @@
 LIBS = str
-SOURCES = graph.ml
-RESULT  = graph
+SOURCES = src/graph.ml
+RESULT  = graph.out
 
 -include OCamlMakefile
