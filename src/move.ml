@@ -76,23 +76,18 @@ let best_move = fun pa om obj ->
     let obj_m2 = eval_move M2 pa om obj in
     if (obj_m1 < obj_m2) then M2 else M1
 
-let apply_best_move = fun c pa om obj ->
-    let best_m = best_move !pa !om !obj in
-    match best_m with
+let apply_move = fun m c pa om obj ->
+    match m with
     M1 -> 
     begin
-      let (prio,v,new_pa) = Pqueue.extract !pa in
-      c := Graph.SS.add v !c;
-      pa := new_pa;
-      obj := !obj +. prio
+      let (prio,v,new_pa) = Pqueue.extract pa in
+      (Graph.SS.add v c, obj +. prio, new_pa, om)
     end
     | M2 ->
     begin
-      let (prio,(v,u),new_om) = Pqueue.extract !om in
-      c := Graph.SS.add v !c;
-      c := Graph.SS.remove u !c;
-      om := new_om;
-      obj := !obj +. prio
+      let (prio,(u,v),new_om) = Pqueue.extract om in
+      let new_c = Graph.SS.add v c in
+      (Graph.SS.remove u new_c, obj +. prio, pa, new_om)
     end
 
     
