@@ -2,8 +2,9 @@
 let authorized = fun graph u l->
   List.filter (fun a-> Graph.is_voisin graph a u) l
 
-(* first_solution u graph renvoie une clique maxiximale (dans le sens on ne peut plus ajouter de noeud à la clique) contenant le noeud u *)
-let first_solution = fun u graph -> 
+(* first_solution graph renvoie une clique maxiximale (dans le sens on ne peut plus ajouter de noeud à la clique) dont le noeud initial est choisi au hasard *)
+let first_solution = fun graph ->
+  let u = Graph.get_node_id graph (1 + Random.int (Array.length graph.Graph.nodes)) in
   let rec update = fun c auth_list ->	(* mettre à jour la liste des noeuds autorisés à être ajouter à la clique *)
     match auth_list with
       [] ->  c							(* on arrête quand on ne peut plus ajouter de noeud à la clique *)
@@ -46,7 +47,6 @@ let create_om = fun graph c ->
     
 let ()=
   let demo = Graph.graph_demo () in
-  let u = Graph.get_node_id demo 3 in
-  let init = first_solution u demo in
+  let init = first_solution demo in
   Printf.printf "%d" (List.length (Graph.SS.elements init));
   Draw.draw demo init;;
