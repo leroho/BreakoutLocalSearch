@@ -44,9 +44,9 @@ let create_om = fun graph c ->
     List.fold_left (fun a b -> Pqueue.insert (b.Graph.weight -. u.Graph.weight) (u, b) a) pqueue (possible_swap graph u c)in
   List.fold_left (fun a b -> insert_possible_swap b a) om (Graph.SS.elements c)
     
-(*let ()=
-  let demo = Graph.generate_random_graph 5 0.7 10. in
+let ()=
+  let demo = Graph.graph_demo () in
   let u = Graph.get_node_id demo 3 in
-  let init = Graph.SS.elements (first_solution u demo) in
-  init;()
-*)
+  let init = first_solution u demo in
+  Printf.printf "%d" (List.length (Graph.SS.elements init));
+  Draw.draw demo init;;
