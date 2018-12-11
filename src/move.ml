@@ -59,6 +59,7 @@ let eval_move = fun m pa om obj->
     let (prio,_,_) = Pqueue.extract om in
     obj +. prio
   end
+  | _ -> failwith "non utilisée"
   
 let best_move = fun pa om obj ->
     let obj_m1 = eval_move M1 pa om obj in
@@ -109,14 +110,16 @@ let apply_move = fun m graph c pa om obj ->
             [] -> ()
           | v::queue ->
               begin
-                let exist = Graph.SS.exists (fun x -> x = v) !c in
+                let exist = Graph.SS.exists (fun x -> x=v) !c in
                 let not_neighbour = ref Graph.SS.empty in
                 let somme = (Graph.SS.fold
                     (fun x somme -> if (Graph.is_voisin graph x v) then
-                      x.Graph.weight + somme
+                      x.Graph.weight +. somme
                     else
+                    (
                       not_neighbour := Graph.SS.add x !not_neighbour;
-                      somme
+                     somme
+                       )
                     ) !c 0.) in
                 let condition = somme > alpha *. !obj in 
                 if (exist && condition) then
