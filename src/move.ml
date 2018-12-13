@@ -1,5 +1,7 @@
 type t = M1 | M2 | M3 | M4 of float
 
+let cmp = fun x y -> 0-(compare x y)
+
 (* authorized graph u l renvoie la liste des noeuds de la liste l qui sont voisins de u *)
 let authorized = fun graph u l->
   List.filter (fun a-> Graph.is_voisin graph a u) l
@@ -16,7 +18,7 @@ let first_solution = fun graph ->
 (* list_to_pqueue l renvoie une pqueue composée des noeuds de la liste l ordonnés selon leurs poids *)
 let list_to_pqueue = fun l ->
   let q = Pqueue.empty in
-  List.fold_left (fun a b -> Pqueue.insert b.Graph.weight b a) q l
+  List.fold_left (fun a b -> Pqueue.insert ~cmp b.Graph.weight b a) q l
     
 (* create_pa_liste graph c renvoie une pqueue composé des noeuds autorisés à être ajouté à la clique c *)
 let create_pa_list = fun graph c->
@@ -44,19 +46,19 @@ let possible_swap = fun graph u c->
 let create_om = fun graph c ->
   let om = Pqueue.empty in
   let insert_possible_swap = fun u pqueue->
-    List.fold_left (fun a b -> Pqueue.insert (b.Graph.weight -. u.Graph.weight) (u, b) a) pqueue (possible_swap graph u c)in
+    List.fold_left (fun a b -> Pqueue.insert ~cmp (b.Graph.weight -. u.Graph.weight) (u, b) a) pqueue (possible_swap graph u c) in
   List.fold_left (fun a b -> insert_possible_swap b a) om (Graph.SS.elements c)
-    
+
 let eval_move = fun m pa om obj->
   match m with
   M1 ->
   begin
-    let (prio,_,_) = Pqueue.extract pa in
+    let (prio,_,_) = Pqueue.extract ~cmp pa in
     obj +. prio
   end
   | M2 ->
   begin
-    let (prio,_,_) = Pqueue.extract om in
+    let (prio,_,_) = Pqueue.extract ~cmp om in
     obj +. prio
   end
   | _ -> failwith "non utilisée"
@@ -70,75 +72,86 @@ let apply_move = fun m graph c pa om obj ->
     match m with
     M1 -> 
     begin
-      let (prio, v, reste_pa) = Pqueue.extract !pa in
+		Printf.printf "move : M1\n";
+      let (prio, v, reste_pa) = Pqueue.extract ~cmp !pa in
       if !obj +. prio > !obj then
         (
-         c := Graph.SS.add v !c;
-         obj := !obj +. prio;
-         pa := new_pa_m1 graph reste_pa v;
-         om := create_om graph !c;
-         (* Tabou_list*)
+		Printf.printf "objectif courant : 		%f\n" !obj;
+		Printf.printf "clique améliorable !\n";
+		Printf.printf "noeud ajouté : 			%d\n" v.Graph.id;
+		Printf.printf "nouvel objectif : 		%f\n" (!obj +. prio);
+        c := Graph.SS.add v !c;
+        obj := !obj +. prio;
+        pa := new_pa_m1 graph reste_pa v;
+        om := create_om graph !c;
+		Printf.printf "taille de la clique : 			%d\n\n" (List.length (Graph.SS.elements !c));
         )
     end
     | M2 ->
-    begin
-      let (prio, (u, v), reste_om) = Pqueue.extract !om in
-      if !obj +. prio > !obj then
-        (
-         c := Graph.SS.add v !c;
-         c := Graph.SS.remove u !c;
-         obj := !obj +. prio;
-         pa := new_pa_m2 graph !c;
-         om := create_om graph !c;
-         (* Tabou_list*)
-        )
-    end
+        begin
+	  Printf.printf "move : M2\n";
+          let (prio, (u, v), reste_om) = Pqueue.extract ~cmp !om in
+          if !obj +. prio > !obj then
+            (
+	     Printf.printf "objectif courant : 		%f\n" !obj;
+	     Printf.printf "clique améliorable !\n";
+	     Printf.printf "noeud ajouté : 			%d\n" v.Graph.id;
+	     Printf.printf "noeud retirer : 			%d\n" u.Graph.id;
+	     Printf.printf "nouvel objectif : 		%f\n" (!obj +. prio);
+             c := Graph.SS.add v !c;
+             c := Graph.SS.remove u !c;
+             obj := !obj +. prio;
+             pa := new_pa_m2 graph !c;
+             om := create_om graph !c;
+	     Printf.printf "taille de la clique : 			%d\n\n" (List.length (Graph.SS.elements !c));
+            )
+        end
     | M3 ->
         begin
-    let node = Graph.SS.choose !c in
-    let prio = node.Graph.weight in
-    c := Graph.SS.remove node !c;
-    obj := !obj +. prio;
-    pa := new_pa_m2 graph !c;
-    om := create_om graph !c;
+          let node = Graph.SS.choose !c in
+          let prio = node.Graph.weight in
+          c := Graph.SS.remove node !c;
+          obj := !obj +. prio;
+          pa := new_pa_m2 graph !c;
+          om := create_om graph !c;
         end
-  | M4 alpha ->
-      begin
-        let list_nodes = Array.to_list graph.Graph.nodes in
-        let rec iter_list = fun l ->
-          match l with
-            [] -> ()
-          | v::queue ->
-              begin
-                let exist = Graph.SS.exists (fun x -> x=v) !c in
-                let not_neighbour = ref Graph.SS.empty in
-                let somme = (Graph.SS.fold
-                    (fun x somme -> if (Graph.is_voisin graph x v) then
-                      x.Graph.weight +. somme
-                    else
-                    (
-                      not_neighbour := Graph.SS.add x !not_neighbour;
-                     somme
-                       )
-                    ) !c 0.) in
-                let condition = somme > alpha *. !obj in 
-                if (exist && condition) then
-                  begin
-                    obj := somme +. !obj;
-                    c := Graph.SS.diff !c !not_neighbour;
-                    pa := new_pa_m2 graph !c;
-                    om := create_om graph !c;
-                  end
-                else
-                  iter_list queue
+    | M4 alpha ->
+        begin
+          let list_nodes = Array.to_list graph.Graph.nodes in
+          let rec iter_list = fun l ->
+            match l with
+              [] -> ()
+            | v::queue ->
+                begin
+                  let exist = Graph.SS.exists (fun x -> x=v) !c in
+                  let not_neighbour = ref Graph.SS.empty in
+                  let somme = (Graph.SS.fold
+                                 (fun x somme -> if (Graph.is_voisin graph x v) then
+                                   x.Graph.weight +. somme
+                                 else
+                                   (
+                                    not_neighbour := Graph.SS.add x !not_neighbour;
+                                    somme
+                                   )
+                                 ) !c 0.) in
+                  let condition = somme > alpha *. !obj in 
+                  if (exist && condition) then
+                    begin
+                      obj := somme +. !obj;
+                      c := Graph.SS.diff !c !not_neighbour;
+                      pa := new_pa_m2 graph !c;
+                      om := create_om graph !c;
+                    end
+                  else
+                    iter_list queue
                 end
-        in
-        iter_list list_nodes
-  end
-
+          in
+          iter_list list_nodes
+        end
+          
     
-let ()=
-  let demo = Graph.graph_demo () in
+(*let ()=
+  let demo = Graph.generate_random_graph 10 0.5 10. in
   let init = first_solution demo in
   Printf.printf "%d" (List.length (Graph.SS.elements init));
-  Draw.draw demo init;;
+  Draw.draw demo init;;*)
