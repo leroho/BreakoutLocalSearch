@@ -109,7 +109,7 @@ let generate_random_graph_unweighted = fun n densite ->
 (* generer un graphe aleatoire pondere de n sommets et un poids maximal de max_w *)
 
 let generate_random_graph = fun n densite max_w ->
-	let g_bis = creat_graph n in
+	let g_bis = create_graph n in
 	let rec gen_w = fun i ->
 		if i = (n + 1) then g
 		else let r = Random.float max_w in
