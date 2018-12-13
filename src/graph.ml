@@ -15,7 +15,7 @@ type graph = {
 	nodes : node array ;
 	edges :  SS.t array 
 }
-d
+
 
 (* une liste des voisins de u , pour avoir les poids parcourir la liste 'nodes' *)
 let get_voisins = fun graph u ->
