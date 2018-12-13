@@ -114,8 +114,8 @@ let generate_random_graph = fun n densite max_w ->
 		if i = (n + 1) then g_bis
 		else let r = Random.float max_w in
 		change_weight_id g_bis i r ; gen_w (i+1)
-	in let g = generate_voisins_all g_bis densite in
-	gen_w 1
+	in gen_w 1 
+	in generate_voisins_all g_bis densite in
 		
 
 
