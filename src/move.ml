@@ -1,4 +1,4 @@
-type t = M1 | M2 | M3 | M4 of float
+type t = M1 | M2 | M3 of Graph.node  | M4 of float
 
 let cmp = fun x y -> 0-(compare x y)
 
@@ -8,6 +8,7 @@ let authorized = fun graph u l->
 
 (* first_solution graph renvoie une clique maxiximale (dans le sens on ne peut plus ajouter de noeud à la clique) dont le noeud initial est choisi au hasard *)
 let first_solution = fun graph ->
+  Random.self_init () ;
   let u = Graph.get_node_id graph (1 + Random.int (Array.length graph.Graph.nodes)) in
   let rec update = fun c auth_list ->	(* mettre à jour la liste des noeuds autorisés à être ajouter à la clique *)
     match auth_list with
@@ -61,6 +62,8 @@ let eval_move = fun m pa om obj->
     let (prio,_,_) = Pqueue.extract ~cmp om in
     obj +. prio
   end
+  | M3 node -> 
+	obj -. (Graph.get_weight node) 
   | _ -> failwith "non utilisée"
   
 let best_move = fun pa om obj ->
@@ -106,9 +109,8 @@ let apply_move = fun m graph c pa om obj ->
 	     Printf.printf "taille de la clique : 			%d\n\n" (List.length (Graph.SS.elements !c));
             )
         end
-    | M3 ->
+    | M3 node ->
         begin
-          let node = Graph.SS.choose !c in
           let prio = node.Graph.weight in
           c := Graph.SS.remove node !c;
           obj := !obj +. prio;
