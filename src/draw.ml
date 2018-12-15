@@ -1,6 +1,6 @@
-let width= 500
-let height= 500
-let m = 200.
+let width= 800
+let height= 800
+let m = 300.
 let red = Graphics.rgb 255 0 0 and blue = Graphics.rgb 0 0 255
 
 let pi = 4.0 *. atan 1.0
@@ -10,16 +10,16 @@ let calcul_points = fun m graph c ->
   let f = fun i a ->
     let float_i = float_of_int i and float_n = float_of_int n in
     let alpha = (2.)*.float_i*.pi/.float_n in
-    if Graph.SS.mem a c then (int_of_float (m*.cos alpha) + 250, int_of_float (m*.sin alpha) + 250, red, a) 
-    else (int_of_float (m*.cos alpha) + 250, int_of_float (m*.sin alpha) + 250, blue, a) in
+    if Graph.SS.mem a c then (int_of_float (m*.cos alpha) + 400, int_of_float (m*.sin alpha) + 400, red, a) 
+    else (int_of_float (m*.cos alpha) + 400, int_of_float (m*.sin alpha) + 400, blue, a) in
   Array.mapi f graph.Graph.nodes
 
 let draw_points = fun points ->
   Array.iter (fun (x, y, color, a) ->
     begin
       Graphics.set_color color;
-      Graphics.draw_circle x y (a.Graph.id*2);
-      Graphics.fill_circle x y (a.Graph.id*2)
+      Graphics.draw_circle x y ((int_of_float a.Graph.weight)*2);
+      Graphics.fill_circle x y ((int_of_float a.Graph.weight)*2)
     end) points
     
 let draw_edge = fun graph points ->
@@ -28,11 +28,20 @@ let draw_edge = fun graph points ->
     List.iter (fun node -> 
       let (x2,y2,col,_) = points.(node.Graph.id - 1) in
       if color = col then
-	begin
-	  Graphics.set_color color;
-	  Graphics.lineto x2 y2;
-	  Graphics.moveto x y;
-	end
+        if col = red then
+	  begin
+	    Graphics.set_color color;
+            Graphics.set_line_width 2;
+	    Graphics.lineto x2 y2;
+	    Graphics.moveto x y;
+            Graphics.set_line_width 1;
+	  end
+        else
+          begin
+	    Graphics.set_color color;
+	    Graphics.lineto x2 y2;
+	    Graphics.moveto x y;
+	  end
       else 
 	begin
 	  Graphics.set_color blue;
