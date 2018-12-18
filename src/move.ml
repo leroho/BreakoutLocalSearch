@@ -71,57 +71,66 @@ let best_move = fun pa om obj ->
     let obj_m2 = eval_move M2 pa om obj in
     if (obj_m1 < obj_m2) then M2 else M1
 
-let apply_move = fun m graph c pa om obj ->
+let apply_move = fun m graph c pa om obj iter tl->
+	Random.self_init () ;
     match m with
     M1 -> 
     begin
-		Printf.printf "\nmove : M1\n";
+		(*Printf.printf "\nmove : M1\n";*)
       let (prio, v, reste_pa) = Pqueue.extract ~cmp !pa in
       if !obj +. prio > !obj then
         (
-		Printf.printf "objectif courant : 		%f\n" !obj;
+		(*Printf.printf "objectif courant : 		%f\n" !obj;
 		Printf.printf "clique améliorable !\n";
 		Printf.printf "noeud ajouté : 			%d\n" v.Graph.id;
-		Printf.printf "nouvel objectif : 		%f\n" (!obj +. prio);
+		Printf.printf "nouvel objectif : 		%f\n" (!obj +. prio);*)
         c := Graph.SS.add v !c;
         obj := !obj +. prio;
         pa := new_pa_m1 graph reste_pa v;
         om := create_om graph !c;
-		Printf.printf "taille de la clique : 			%d\n" (List.length (Graph.SS.elements !c));
+		(*Printf.printf "taille de la clique : 			%d\n" (List.length (Graph.SS.elements !c));*)
         )
     end
     | M2 ->
         begin
-	  Printf.printf "\nmove : M2\n";
+		(*Printf.printf "\nmove : M2\n";*)
           let (prio, (u, v), reste_om) = Pqueue.extract ~cmp !om in
           if !obj +. prio > !obj then
             (
-	     Printf.printf "objectif courant : 		%f\n" !obj;
+	     (*Printf.printf "objectif courant : 		%f\n" !obj;
 	     Printf.printf "clique améliorable !\n";
 	     Printf.printf "noeud ajouté : 	        %d\n" v.Graph.id;
 	     Printf.printf "noeud retirer : 		%d\n" u.Graph.id;
-	     Printf.printf "nouvel objectif : 	        %f\n" (!obj +. prio);
-             c := Graph.SS.add v !c;
-             c := Graph.SS.remove u !c;
-             obj := !obj +. prio;
-             pa := new_pa_m2 graph !c;
-             om := create_om graph !c;
-	     Printf.printf "taille de la clique : 			%d\n" (List.length (Graph.SS.elements !c));
+	     Printf.printf "nouvel objectif : 	        %f\n" (!obj +. prio);*)
+			let i = u.Graph.id - 1 in
+			let phi = 7 in 				
+			let gamma =  phi + 1 + (Random.int (List.length (Pqueue.elements !om))) in  
+			Array.set tl i (iter,gamma);
+            c := Graph.SS.add v !c;
+            c := Graph.SS.remove u !c;
+            obj := !obj +. prio;
+            pa := new_pa_m2 graph !c;
+            om := create_om graph !c;
+	    (*Printf.printf "taille de la clique : 			%d\n" (List.length (Graph.SS.elements !c));*)
             )
         end
     | M3 node ->
-	Printf.printf "\nmove :                 M3\n";
-	Printf.printf "noeud retire :           %d\n" node.Graph.id;
+	(*Printf.printf "\nmove :                 M3\n";
+	Printf.printf "noeud retire :           %d\n" node.Graph.id;*)
         begin
-          c := Graph.SS.remove node !c;
-          obj := !obj -. node.Graph.weight;
-          pa := new_pa_m2 graph !c;
-          om := create_om graph !c;
+		let i = node.Graph.id - 1 in
+		let phi = 7 in 				
+		let gamma =  phi + 1 + (Random.int (List.length (Pqueue.elements !om))) in  
+		Array.set tl i (iter,gamma);
+		c := Graph.SS.remove node !c;
+		obj := !obj -. node.Graph.weight;
+		pa := new_pa_m2 graph !c;
+		om := create_om graph !c;
         end;
-	Printf.printf "nouvel objectif :       	%f\n" (!obj);
-        Printf.printf "taille de la clique :   	%d\n" (List.length (Graph.SS.elements !c));
+	(*Printf.printf "nouvel objectif :       	%f\n" (!obj);
+        Printf.printf "taille de la clique :   	%d\n" (List.length (Graph.SS.elements !c));*)
     | M4 alpha ->
-	Printf.printf "\nmove :                 M4\n";
+	(*Printf.printf "\nmove :                 M4\n";*)
         begin
           let list_nodes = Array.to_list graph.Graph.nodes in
           let rec iter_list = fun l ->
@@ -138,15 +147,20 @@ let apply_move = fun m graph c pa om obj ->
                                     x.Graph.weight +. somme
                                    )
                                  else
+									let i = x.Graph.id - 1 in
+									let phi = 7 in 				
+									let gamma =  phi + 1 + (Random.int (List.length (Pqueue.elements !om))) in  
+									Array.set tl i (iter,gamma);
                                    somme
                                  ) !c v.Graph.weight) in
                   let condition = somme > alpha *. !obj in 
                   if ((not exist) && condition) then
                     begin
-                      obj := somme;
-                      c := Graph.SS.add v !neighbour;
-                      pa := new_pa_m2 graph !c;
-                      om := create_om graph !c;
+						obj := somme;
+						c := Graph.SS.add v !neighbour;
+						pa := new_pa_m2 graph !c;
+						om := create_om graph !c;
+						if 0.5 > Random.float 1. then iter_list queue
                     end
                   else
                     iter_list queue
@@ -154,8 +168,8 @@ let apply_move = fun m graph c pa om obj ->
           in
           iter_list list_nodes
         end;
-	Printf.printf "nouvel objectif :       	%f\n" (!obj);
-	Printf.printf "taille de la clique :  	%d\n" (List.length (Graph.SS.elements !c));
+	(*Printf.printf "nouvel objectif :       	%f\n" (!obj);
+	Printf.printf "taille de la clique :  	%d\n" (List.length (Graph.SS.elements !c));*)
           
     
 (*let ()=

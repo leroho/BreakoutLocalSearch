@@ -1,6 +1,6 @@
 let width= 800
 let height= 800
-let m = 300.
+let m = 200.
 let red = Graphics.rgb 255 0 0 and blue = Graphics.rgb 0 0 255
 
 let pi = 4.0 *. atan 1.0
@@ -10,8 +10,8 @@ let calcul_points = fun m graph c ->
   let f = fun i a ->
     let float_i = float_of_int i and float_n = float_of_int n in
     let alpha = (2.)*.float_i*.pi/.float_n in
-    if Graph.SS.mem a c then (int_of_float (m*.cos alpha) + 400, int_of_float (m*.sin alpha) + 400, red, a) 
-    else (int_of_float (m*.cos alpha) + 400, int_of_float (m*.sin alpha) + 400, blue, a) in
+    if Graph.SS.mem a c then (int_of_float (m*.cos alpha) + 400, int_of_float (m*.sin alpha) + 500, red, a) 
+    else (int_of_float (m*.cos alpha) + 400, int_of_float (m*.sin alpha) + 500, blue, a) in
   Array.mapi f graph.Graph.nodes
 
 let draw_points = fun points ->
@@ -37,22 +37,25 @@ let draw_edge = fun graph points ->
             Graphics.set_line_width 1;
 	  end
         else
-          begin
-	    Graphics.set_color color;
+			begin
+			();
+	    (*Graphics.set_color color;
 	    Graphics.lineto x2 y2;
-	    Graphics.moveto x y;
+	    Graphics.moveto x y;*)
 	  end
       else 
 	begin
-	  Graphics.set_color blue;
+		();
+	  (*Graphics.set_color blue;
 	  Graphics.lineto x2 y2;
-	  Graphics.moveto x y;
+	  Graphics.moveto x y;*)
 	end) (Graph.get_voisins graph a) in
   Array.iter f points
 	
 let draw = fun graph c ->
+	Graphics.auto_synchronize false;
+	Graphics.clear_graph ();
   let points = calcul_points m graph c in
-  Graphics.open_graph (Printf.sprintf " %dx%d+50-0" width height);
   draw_points points;
   draw_edge graph points;
-  ignore (Graphics.read_key ());;
+	Graphics.auto_synchronize true;;

@@ -31,24 +31,7 @@ let not_prohibited = fun m tl iter pa om ->
   | Move.M3 node -> let i = node.Graph.id - 1 in
     let (last_iter, gamma) = tl.(i) in
 				    (iter - last_iter) > gamma
-  | _ -> failwith "not_prohibited:mouvement M4 non utilisée"
-        
-let update_tl = fun m tl iter pa om ->
-  match m with 
-    Move.M1 ->  tl
-  | Move.M2 ->  let (prio, (u,v), reste_om) = Pqueue.extract ~cmp om in
-    let i = u.Graph.id - 1 in
-    let phi = 7 in 				
-    let gamma =  phi (* (1 + (Random.int longueur de OM ) *) in  
-    Array.set tl i (iter,gamma);
-    tl
-  | Move.M3 node -> let i = node.Graph.id - 1 in
-    let phi = 7 in 				
-    let gamma =  phi + 11 (* (1 + (Random.int longueur de OM ) *) in  
-    Array.set tl i (iter,gamma);
-    tl
-  | _ -> failwith "update_tl:mouvement M4 non utilisée"
-        
+  | _ -> failwith "not_prohibited:mouvement M4 non utilisée"    
         
 let compute_set_A = fun c pa om f_best obj node tl iter ->
   let delta = fun m ->
@@ -63,7 +46,7 @@ let compute_set_A = fun c pa om f_best obj node tl iter ->
   let move_list =  Move.M1 ::  Move.M2 ::  (Move.M3 node) :: [] in
   let authorized_mv_list = List.fold_left (fun a m ->
     let delta_m = delta m in
-    if (not_prohibited m tl iter pa om) || delta_m +. obj > f_best then (m, delta_m) :: a else a) [] move_list in
+    if (not_prohibited m tl iter pa om) || (delta_m +. obj > f_best) then (m, delta_m) :: a else a) [] move_list in
   let rec max_m = fun l ->
     match l with
       [] -> ( Move.M1, 0. -. float_of_int max_int)
@@ -85,30 +68,31 @@ let compute_p = fun w t p ->
           
           
 let perturbation = fun graph pa om obj c l tl iter w alpha_r alpha_s t p0 f_best ->
-  Printf.printf "\nin perturbation-----------------------------------------------\n";
+  Random.self_init () ;
+  (*Printf.printf "\nin perturbation-----------------------------------------------\n";
   Printf.printf "w :       	    %d\n" w;
-  Printf.printf "l :              %d\n" l;
+  Printf.printf "l :              %d\n" l;*)
   let perturb = fun c l type_perturb alpha -> 
     for i=1 to l do
-      begin
+	Random.self_init () ;
+    begin
 	if type_perturb = 0 then
 	  begin
 	    let move = Move.M4 alpha in
-	    Move.apply_move move graph c pa om obj	(* update_tl ? *)
+	    Move.apply_move move graph c pa om obj !iter tl;
 	  end
 	else
 	  begin
-	    let node = Graph.SS.choose !c in
-	    let move_array = compute_set_A c !pa !om !f_best !obj node !tl !iter in
+	    let node = (Array.of_list (Graph.SS.elements !c)).(Random.int (Graph.SS.cardinal !c)) in
+	    let move_array = compute_set_A c !pa !om !f_best !obj node tl !iter in
             match move_array with
               [] -> ()
             | _ ->
                 begin
-                  let move = choose_move move_array in
-	          tl := update_tl move !tl !iter !pa !om;  (* il faut le mettre avant apply_move car pa et om seront changes *)
-	          Move.apply_move move graph c pa om obj
+                let move = choose_move move_array in
+				Move.apply_move move graph c pa om obj !iter tl;
                 end
-	  end;
+	end;
 	iter := !iter + 1
       end
     done in
