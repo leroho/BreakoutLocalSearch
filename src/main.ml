@@ -69,5 +69,5 @@ let bls = fun graph t l0 lmax->
   !cbest;;
 
 let ()=
-  let demo = Graph.create_graph_DIMACS "dimacs2.txt" in
+  let demo = Graph.create_graph_DIMACS "data/dimacs2.txt" in
   let c = bls demo 50. 2 15 in ();;
