@@ -46,9 +46,29 @@ let possible_swap = fun graph u c->
 (* create_om graph c revoie la pqueue de tous les couple de noeuds (u, v) pouvant être "swaper" ordonnés selon (v.weight - u.weight) *) 
 let create_om = fun graph c ->
   let om = Pqueue.empty in
-  let insert_possible_swap = fun u pqueue->
-    List.fold_left (fun a b -> Pqueue.insert ~cmp (b.Graph.weight -. u.Graph.weight) (u, b) a) pqueue (possible_swap graph u c) in
-  List.fold_left (fun a b -> insert_possible_swap b a) om (Graph.SS.elements c)
+  let n = Graph.SS.cardinal c in
+  let rec iter_list = fun l ->
+            match l with
+              [] -> om
+            | v::queue ->
+		begin
+			let exist = Graph.SS.exists (fun x -> x=v) c in
+			let u = ref 0 in
+			let vid = v.Graph.id in
+			let cnt = ref 0 in
+			if not exist then
+			(
+				for i = 1 to n do 
+       					if Graph.is_voisin_id graph vid i then cnt := !cnt + 1
+					else u := i
+    				done;
+			 if !cnt = n - 1 then ( Pqueue.insert ~cmp ((Graph.get_weight_id graph vid) -. (Graph.get_weight_id graph !u)) (graph.Graph.nodes.(!u-1),v ) om )
+			 else iter_list queue			
+			)
+			else iter_list queue		
+		end in
+	iter_list (Array.to_list graph.Graph.nodes)
+		
 
 let eval_move = fun m pa om obj->
   match m with
