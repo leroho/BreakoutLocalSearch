@@ -37,25 +37,25 @@ let compute_set_A = fun c pa om f_best obj node tl iter ->
   let delta = fun m ->
     match m with
       Move.M1 ->
-        if Pqueue.is_empty pa then 0. -. (float_of_int max_int) else (Move.eval_move Move.M1 pa om obj ) -. obj
+        if Pqueue.is_empty pa then (0 - max_int) else (Move.eval_move Move.M1 pa om obj ) - obj
     | Move.M2 ->
-        if Pqueue.is_empty om then 0. -. (float_of_int max_int) else (Move.eval_move Move.M2 pa om obj ) -. obj
-    | Move.M3 node -> (Move.eval_move (Move.M3 node) pa om obj ) -. obj
+        if Pqueue.is_empty om then (0 - max_int) else (Move.eval_move Move.M2 pa om obj ) - obj
+    | Move.M3 node -> (Move.eval_move (Move.M3 node) pa om obj ) - obj
     | _ -> failwith "compute_set_A:mouvement M4 non utilisée"
   in
   let move_list =  Move.M1 ::  Move.M2 ::  (Move.M3 node) :: [] in
   let authorized_mv_list = List.fold_left (fun a m ->
     let delta_m = delta m in
-    if (not_prohibited m tl iter pa om) || (delta_m +. obj > f_best) then (m, delta_m) :: a else a) [] move_list in
+    if (not_prohibited m tl iter pa om) || (delta_m + obj > f_best) then (m, delta_m) :: a else a) [] move_list in
   let rec max_m = fun l ->
     match l with
-      [] -> ( Move.M1, 0. -. float_of_int max_int)
+      [] -> ( Move.M1, 0 - max_int)
     | (a,b)::queue ->
         let (m_queue, delta_queue) = max_m queue in
         if (b >delta_queue) then (a,b)
         else (m_queue, delta_queue) in
   let (move_max, delta_max) = max_m authorized_mv_list in
-  if delta_max = (0. -. float_of_int max_int) then []
+  if delta_max = (0 - max_int) then []
   else 
     let set_a = List.fold_left (fun a (m,delta_m) ->
       if m <> move_max && delta_m = delta_max then m::a else a ) [] authorized_mv_list in
