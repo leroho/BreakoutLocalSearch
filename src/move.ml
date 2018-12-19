@@ -9,7 +9,7 @@ let authorized = fun graph u l->
 (* first_solution graph renvoie une clique maxiximale (dans le sens on ne peut plus ajouter de noeud à la clique) dont le noeud initial est choisi au hasard *)
 let first_solution = fun graph ->
   Random.self_init () ;
-  let u = Graph.get_node_id graph (1 + Random.int (Array.length graph.Graph.nodes)) in
+  let u = Graph.get_node_id graph (Random.int (1 + Array.length graph.Graph.nodes)) in
   let rec update = fun c auth_list ->	(* mettre à jour la liste des noeuds autorisés à être ajouter à la clique *)
     match auth_list with
       [] ->  c							(* on arrête quand on ne peut plus ajouter de noeud à la clique *)
@@ -44,46 +44,46 @@ let possible_swap = fun graph u c->
   List.filter (fun a -> not (Graph.is_voisin graph a u)) l
      
 (* create_om graph c revoie la pqueue de tous les couple de noeuds (u, v) pouvant être "swaper" ordonnés selon (v.weight - u.weight) *) 
+
 let create_om = fun graph c ->
-  let om = Pqueue.empty in
   let n = Graph.SS.cardinal c in
-  let rec iter_list = fun l ->
-            match l with
+  let c_array = Array.of_list (Graph.SS.elements c) in
+  let rec iter_list = fun l om->
+		match l with
               [] -> om
             | v::queue ->
-		begin
-			let exist = Graph.SS.exists (fun x -> x=v) c in
-			let u = ref 0 in
-			let vid = v.Graph.id in
-			let cnt = ref 0 in
-			if not exist then
-			(
-				for i = 1 to n do 
-       					if Graph.is_voisin_id graph vid i then cnt := !cnt + 1
-					else u := i
-    				done;
-			 if !cnt = n - 1 then ( Pqueue.insert ~cmp ((Graph.get_weight_id graph vid) -. (Graph.get_weight_id graph !u)) (graph.Graph.nodes.(!u-1),v ) om )
-			 else iter_list queue			
-			)
-			else iter_list queue		
-		end in
-	iter_list (Array.to_list graph.Graph.nodes)
-		
-
+			begin
+				let exist = Graph.SS.exists (fun x -> x=v) c in
+				let uid = ref 0 in
+				let vid = v.Graph.id in
+				let cnt = ref 0 in
+				if not exist then
+				(
+					for i = 0 to n-1 do 
+						if Graph.is_voisin_id graph vid (c_array.(i).Graph.id) then cnt := !cnt + 1
+						else uid := c_array.(i).Graph.id
+					done;
+				if !cnt = n - 1 then ( iter_list queue (Pqueue.insert ~cmp ((Graph.get_weight_id graph vid) - (Graph.get_weight_id graph !uid)) (graph.Graph.nodes.(!uid-1),v ) om))		
+				else iter_list queue om
+				)
+				else iter_list queue om
+			end in
+	iter_list (Array.to_list graph.Graph.nodes) (Pqueue.empty)
+  
 let eval_move = fun m pa om obj->
   match m with
   M1 ->
   begin
     let (prio,_,_) = Pqueue.extract ~cmp pa in
-    obj +. prio
+    obj + prio
   end
   | M2 ->
   begin
     let (prio,_,_) = Pqueue.extract ~cmp om in
-    obj +. prio
+    obj + prio
   end
   | M3 node -> 
-	obj -. (Graph.get_weight node) 
+	obj - (Graph.get_weight node) 
   | _ -> failwith "non utilisée"
   
 let best_move = fun pa om obj ->
@@ -98,14 +98,14 @@ let apply_move = fun m graph c pa om obj iter tl->
     begin
 		(*Printf.printf "\nmove : M1\n";*)
       let (prio, v, reste_pa) = Pqueue.extract ~cmp !pa in
-      if !obj +. prio > !obj then
+      if !obj + prio > !obj then
         (
 		(*Printf.printf "objectif courant : 		%f\n" !obj;
 		Printf.printf "clique améliorable !\n";
 		Printf.printf "noeud ajouté : 			%d\n" v.Graph.id;
-		Printf.printf "nouvel objectif : 		%f\n" (!obj +. prio);*)
+		Printf.printf "nouvel objectif : 		%f\n" (!obj + prio);*)
         c := Graph.SS.add v !c;
-        obj := !obj +. prio;
+        obj := !obj + prio;
         pa := new_pa_m1 graph reste_pa v;
         om := create_om graph !c;
 		(*Printf.printf "taille de la clique : 			%d\n" (List.length (Graph.SS.elements !c));*)
@@ -115,7 +115,7 @@ let apply_move = fun m graph c pa om obj iter tl->
         begin
 		(*Printf.printf "\nmove : M2\n";*)
           let (prio, (u, v), reste_om) = Pqueue.extract ~cmp !om in
-          if !obj +. prio > !obj then
+          if !obj + prio > !obj then
             (
 	     (*Printf.printf "objectif courant : 		%f\n" !obj;
 	     Printf.printf "clique améliorable !\n";
@@ -124,11 +124,11 @@ let apply_move = fun m graph c pa om obj iter tl->
 	     Printf.printf "nouvel objectif : 	        %f\n" (!obj +. prio);*)
 			let i = u.Graph.id - 1 in
 			let phi = 7 in 				
-			let gamma =  phi + 1 + (Random.int (List.length (Pqueue.elements !om))) in  
+			let gamma =  phi + (Random.int (1 + List.length (Pqueue.elements !om))) in  
 			Array.set tl i (iter,gamma);
             c := Graph.SS.add v !c;
             c := Graph.SS.remove u !c;
-            obj := !obj +. prio;
+            obj := !obj + prio;
             pa := new_pa_m2 graph !c;
             om := create_om graph !c;
 	    (*Printf.printf "taille de la clique : 			%d\n" (List.length (Graph.SS.elements !c));*)
@@ -140,10 +140,10 @@ let apply_move = fun m graph c pa om obj iter tl->
         begin
 		let i = node.Graph.id - 1 in
 		let phi = 7 in 				
-		let gamma =  phi + 1 + (Random.int (List.length (Pqueue.elements !om))) in  
+		let gamma =  phi + (Random.int (1 + List.length (Pqueue.elements !om))) in  
 		Array.set tl i (iter,gamma);
 		c := Graph.SS.remove node !c;
-		obj := !obj -. node.Graph.weight;
+		obj := !obj - node.Graph.weight;
 		pa := new_pa_m2 graph !c;
 		om := create_om graph !c;
         end;
@@ -164,16 +164,16 @@ let apply_move = fun m graph c pa om obj iter tl->
                                  (fun x somme -> if (Graph.is_voisin graph x v) then
                                    (
                                     neighbour := Graph.SS.add x !neighbour;
-                                    x.Graph.weight +. somme
+                                    x.Graph.weight + somme
                                    )
                                  else
 									let i = x.Graph.id - 1 in
 									let phi = 7 in 				
-									let gamma =  phi + 1 + (Random.int (List.length (Pqueue.elements !om))) in  
+									let gamma =  phi + (Random.int (1 + List.length (Pqueue.elements !om))) in  
 									Array.set tl i (iter,gamma);
                                    somme
                                  ) !c v.Graph.weight) in
-                  let condition = somme > alpha *. !obj in 
+                  let condition = somme > int_of_float (alpha *. (float_of_int !obj)) in 
                   if ((not exist) && condition) then
                     begin
 						obj := somme;
