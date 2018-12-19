@@ -6,9 +6,7 @@ let func_eval = fun c ->
   Graph.SS.fold (fun a b -> a.Graph.weight +. b) c sum_weight;;*)
 (*choisi le premier movement de la list*)
 let choose_move = fun move_list ->
-  match move_list with 
-    [] -> failwith "move_list vide!"
-  | tete::queue -> tete
+  (Array.of_list move_list).(Random.int (List.length move_list))
         
 let cmp = fun x y -> 0-(compare x y)
     
