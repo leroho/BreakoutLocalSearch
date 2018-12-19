@@ -1,7 +1,6 @@
-
 type node = {
 	id : int ;
-	weight : float ;
+	weight : int ;
 }
 
 module SS = Set.Make(
@@ -30,7 +29,7 @@ let get_node_id = fun graph u_id ->
 
 (* creation d'un graphe de n sommets de poids 1 *)
 let create_graph = fun n ->
-	{nodes = Array.init n (fun i -> {id = i + 1; weight = 1.}) ; edges = Array.make n SS.empty}
+	{nodes = Array.init n (fun i -> {id = i + 1; weight = 1}) ; edges = Array.make n SS.empty}
 
 
 (* change le poids de u en w *)
@@ -112,7 +111,7 @@ let generate_random_graph = fun n densite max_w ->
 	let g_bis = create_graph n in
 	let rec gen_w = fun i ->
 		if i = (n + 1) then g_bis
-		else let r = Random.float max_w in
+		else let r = Random.int max_w in
 		change_weight_id g_bis i r ; gen_w (i+1)
 	in generate_voisins_all (gen_w 1) densite 
 		

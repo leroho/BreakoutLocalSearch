@@ -18,8 +18,8 @@ let draw_points = fun points ->
   Array.iter (fun (x, y, color, a) ->
     begin
       Graphics.set_color color;
-      Graphics.draw_circle x y ((int_of_float a.Graph.weight)*2);
-      Graphics.fill_circle x y ((int_of_float a.Graph.weight)*2)
+      Graphics.draw_circle x y (a.Graph.weight*2);
+      Graphics.fill_circle x y (a.Graph.weight*2)
     end) points
     
 let draw_edge = fun graph points ->
