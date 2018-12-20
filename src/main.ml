@@ -68,6 +68,18 @@ let bls = fun graph t l0 lmax->
   Printf.printf "fbest: %d\n" !fbest;
   !cbest;;
 
+(* fonction qui permet de vérifier la clique *)
+let isClique = fun graph clique ->
+  (* on teste chaque élément de la clique *)
+  let checkElt = fun u ->
+    let checkOthers = fun v ->
+      if (u=v) then true
+      else Graph.is_voisin graph u v
+    in  
+    Graph.SS.for_all checkOthers clique
+  in
+  Graph.SS.for_all checkElt clique
+
 let ()=
   let demo = Graph.create_graph_DIMACS "data/dimacs2.txt" in(*Graph.generate_random_graph 200 0.5 5*)
   let c = bls demo 100. 2 20 in ();
