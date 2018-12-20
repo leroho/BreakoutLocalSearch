@@ -1,8 +1,8 @@
 let func_eval = fun c ->
   Graph.SS.fold (fun a b -> a.Graph.weight + b) c 0
-    
+
 let cmp = fun x y-> 0-(compare x y)
-    
+
 let bls = fun graph t l0 lmax->
   let time_start = Unix.time () in
   Graphics.open_graph (Printf.sprintf " %dx%d+50-0" 800 800);
@@ -19,20 +19,20 @@ let bls = fun graph t l0 lmax->
   let l = ref l0 in
   let tl = Array.map (fun a -> (0, 0)) graph.Graph.nodes in
   let nbIter = ref 0 in
-  
+
   let alpha_r = 0.85 and alpha_s=0.4 and p0 = 0.6 in
-  
+
   while !nbIter < 3000 do
     while (not (Pqueue.is_empty !pa)) || (not (Pqueue.is_empty !om) && (let (prio, (u, v), reste_om) = Pqueue.extract ~cmp !om in prio) > 0) do
       if Pqueue.is_empty !pa then
-	(let m = Move.M2 in
-	Move.apply_move m graph c pa om fc !nbIter tl)
+        (let m = Move.M2 in
+         Move.apply_move m graph c pa om fc !nbIter tl)
       else if Pqueue.is_empty !om then
-	(let m = Move.M1 in
-	Move.apply_move m graph c pa om fc !nbIter tl)
+        (let m = Move.M1 in
+         Move.apply_move m graph c pa om fc !nbIter tl)
       else
-	(let m = Move.best_move !pa !om !fc in
-	Move.apply_move m graph c pa om fc !nbIter tl);
+        (let m = Move.best_move !pa !om !fc in
+         Move.apply_move m graph c pa om fc !nbIter tl);
       fc_array:= Array.append !fc_array [|(!nbIter, !fc * 10)|];
       nbIter := !nbIter + 1
     done;
@@ -55,7 +55,7 @@ let bls = fun graph t l0 lmax->
       else
         l := l0
     end;
-    
+
     cp := !c;
     Perturbation.perturbation graph pa om fc c !l tl nbIter !w alpha_r alpha_s t p0 fbest;
     fc_array:= Array.append !fc_array [|(!nbIter, !fc * 10)|];
