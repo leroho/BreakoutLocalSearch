@@ -158,7 +158,7 @@ let create_graph_DIMACSW = fun filename ->
 				comment_flag := false )
 		done;
 		let graph = create_graph !num_nodes in
-		for i=1 to !num_edges do
+		for i=1 to !num_nodes do
 			change_weight_id graph i ((i mod 200) + 1)
 		done;
 		for i = 1 to !num_edges do

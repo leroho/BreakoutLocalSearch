@@ -20,13 +20,13 @@ let isClique = fun graph clique ->
   Graph.SS.for_all checkElt clique
     
 let bls = fun graph t ->
-  Graphics.open_graph (Printf.sprintf " %dx%d+50-0" 800 800);
+  (*Graphics.open_graph (Printf.sprintf " %dx%d+50-0" 800 800);*)
   Random.self_init () ;
   let c = ref (Move.first_solution graph) in
   let pa = ref Pqueue.empty in
   let om = ref (Move.create_om graph !c) in
   let fc = ref (func_eval !c) in
-  let fc_array = ref [|(0, !fc * 5)|] in
+  (*let fc_array = ref [|(0, !fc * 5)|] in*)
   let cbest = ref !c in
   let fbest = ref !fc in
   let cp = ref !c in
@@ -39,7 +39,7 @@ let bls = fun graph t ->
   
   let alpha_r = 0.8 and alpha_s=0.8 and p0 = 0.75 in (*alpha_r = 0.83 and alpha_s=0.58 and p0 = 0.63 in*)
   
-  while !nbIter < 100000 do
+  while !nbIter < 10000 do
     while in_local_search graph !nbIter tl !pa !om !c do
       if Pqueue.is_empty !pa then
 	(let m = Move.M2 in
@@ -52,9 +52,9 @@ let bls = fun graph t ->
 	Move.apply_move m graph c pa om fc !nbIter tl);
       nbIter := !nbIter + 1
     done;
-    fc_array:= Array.append !fc_array [|(!nbIter, !fc*5)|];
+    (*fc_array:= Array.append !fc_array [|(!nbIter, !fc*5)|];
     Draw.draw graph !c;
-    Graphics.draw_poly_line !fc_array;
+    Graphics.draw_poly_line !fc_array;*)
     begin
       if fc > fbest then
         (cbest := !c;
@@ -79,7 +79,7 @@ let bls = fun graph t ->
   (!fbest, !cbest);;
 
 let ()=
-  let demo = Graph.create_graph_DIMACS "data/dimacs_test0.txt" in
+  let demo = Graph.create_graph_DIMACS "data/dimacs_test4.txt" in
   let time_start = Unix.time () in
   let (fbest, c) = bls demo 1000. in
   let time_end = Unix.time () in
