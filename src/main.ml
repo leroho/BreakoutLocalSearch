@@ -1,13 +1,19 @@
+
+(* fonction qui renvoie la valeur d'une clique, il prend un Set en parametre et renvoie la somme des poids de ses elements *)
 let func_eval = fun c ->
   Graph.SS.fold (fun a b -> a.Graph.weight + b) c 0
-    
+ 
+(* fonction de comparaison utilisee dans la Pqueue *) 
 let cmp = fun x y-> 0-(compare x y)
 
+(* cette fonction renvoie true si l'ensembe PA n'est pas vide ou si OM n'est pas vide et ameliore la recherche,
+et renvoie false sinon *) 
 let in_local_search = fun graph nbIter tl pa om c ->
   let pa_cond = not (Pqueue.is_empty pa) in
   let om_cond = (if not (Pqueue.is_empty om) then let (prio, _, _) = Pqueue.extract ~cmp om in prio > 0 else false) in
   pa_cond || om_cond
 
+(* fonction qui renvoie true se le set passe en parametre constitue une clique valide*)
 let isClique = fun graph clique ->
   (* on teste chaque élément de la clique *)
   let checkElt = fun u ->
@@ -19,28 +25,31 @@ let isClique = fun graph clique ->
   in
   Graph.SS.for_all checkElt clique
     
+(*fonction principale de la recherche*)
 let bls = fun graph t ->
   (*Graphics.open_graph (Printf.sprintf " %dx%d+50-0" 800 800);*)
   Random.self_init () ;
-  let c = ref (Move.first_solution graph) in
+  (* on commence par initialiser les ensembles, les variables et parametres utilises *)
+  let c = ref (Move.first_solution graph) in (* la clique courante *)
   let pa = ref Pqueue.empty in
   let om = ref (Move.create_om graph !c) in
-  let fc = ref (func_eval !c) in
+  let fc = ref (func_eval !c) in 	(* la valeur de la fonction objective*)
   (*let fc_array = ref [|(0, !fc * 5)|] in*)
-  let cbest = ref !c in
-  let fbest = ref !fc in
-  let cp = ref !c in
-  let w = ref 0 in
+  let cbest = ref !c in  	(* la meilleure clique *)
+  let fbest = ref !fc in  	(* la meilleur valeure de la fonction objective *)
+  let cp = ref !c in  		(* le dernier optimum local *)
+  let w = ref 0 in  		(* compteur pour les optima locals consecutifs sans amelioration *)
   let l0 = (Array.length graph.Graph.nodes) / 100 in
   let lmax = (Array.length graph.Graph.nodes) / 10 in
   let l = ref l0 in
-  let tl = Array.map (fun a -> (0-max_int, 0)) graph.Graph.nodes in
+  let tl = Array.map (fun a -> (0-max_int, 0)) graph.Graph.nodes in (* inialisation de la tabou list *)
   let nbIter = ref 0 in
   
   let alpha_r = 0.8 and alpha_s=0.8 and p0 = 0.75 in (*alpha_r = 0.83 and alpha_s=0.58 and p0 = 0.63 in*)
   
+  (* boucle principale de la recherche *)
   while !nbIter < 10000 do
-    while in_local_search graph !nbIter tl !pa !om !c do
+    while in_local_search graph !nbIter tl !pa !om !c do (* tant que PA est non vide ou OM est non vide et ameliore la recherche*)
       if Pqueue.is_empty !pa then
 	(let m = Move.M2 in
 	Move.apply_move m graph c pa om fc !nbIter tl)
