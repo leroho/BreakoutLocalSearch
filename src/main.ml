@@ -66,24 +66,26 @@ let bls = fun graph t ->
     Draw.draw graph !c;
     Graphics.draw_poly_line !fc_array;*)
     begin
-      if fc > fbest then
+      if fc > fbest then	(* si vrai, on met a jour la meilleure solution, et on remet le compteur a 0 *)
         (cbest := !c;
          fbest := !fc;
          w := 0) 
       else
         w := !w + 1
     end;
-    begin
-      if float_of_int !w > t then
+    begin 
+      if float_of_int !w > t then (* si le compteur est superieur au parametre t 
+      c.a.d on a pas une meilleure solution pour t iteration, on met l la puissance de la perturbation a lmax *) 
         (l := lmax;
          w := 0)
       else if !c = !cp then
         l := !l + 1
-      else
+      else (* on a trouve une meilleure solution on met la puissance de la perturbation au niveau l0 *)
         l := l0
     end;
     
     cp := !c;
+    (* on applique la fonction perturbation *)
     Perturbation.perturbation graph pa om fc c !l tl nbIter !w alpha_r alpha_s t p0 fbest;
   done;
   (!fbest, !cbest);;
