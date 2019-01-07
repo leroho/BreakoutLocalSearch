@@ -16,46 +16,46 @@ let calcul_points = fun m graph c ->
 
 let draw_points = fun points ->
   Array.iter (fun (x, y, color, a) ->
-      begin
-        Graphics.set_color color;
-        Graphics.draw_circle x y (a.Graph.weight*2);
-        Graphics.fill_circle x y (a.Graph.weight*2)
-      end) points
-
+    begin
+      Graphics.set_color color;
+      Graphics.draw_circle x y (a.Graph.weight*2);
+      Graphics.fill_circle x y (a.Graph.weight*2)
+    end) points
+    
 let draw_edge = fun graph points ->
   let f = fun (x, y, color, a) ->
     Graphics.moveto x y;
     List.iter (fun node -> 
-        let (x2,y2,col,_) = points.(node.Graph.id - 1) in
-        if color = col then
-          if col = red then
-            begin
-              Graphics.set_color color;
-              Graphics.set_line_width 2;
-              Graphics.lineto x2 y2;
-              Graphics.moveto x y;
-              Graphics.set_line_width 1;
-            end
-          else
-            begin
-              ();
-              (*Graphics.set_color color;
-                Graphics.lineto x2 y2;
-                Graphics.moveto x y;*)
-            end
-        else 
-          begin
-            ();
-            (*Graphics.set_color blue;
-              Graphics.lineto x2 y2;
-              Graphics.moveto x y;*)
-          end) (Graph.get_voisins graph a) in
+      let (x2,y2,col,_) = points.(node.Graph.id - 1) in
+      if color = col then
+        if col = red then
+	  begin
+	    Graphics.set_color color;
+            Graphics.set_line_width 2;
+	    Graphics.lineto x2 y2;
+	    Graphics.moveto x y;
+            Graphics.set_line_width 1;
+	  end
+        else
+			begin
+			();
+	    (*Graphics.set_color color;
+	    Graphics.lineto x2 y2;
+	    Graphics.moveto x y;*)
+	  end
+      else 
+	begin
+		();
+	  (*Graphics.set_color blue;
+	  Graphics.lineto x2 y2;
+	  Graphics.moveto x y;*)
+	end) (Graph.get_voisins graph a) in
   Array.iter f points
-
+	
 let draw = fun graph c ->
-  Graphics.auto_synchronize false;
-  Graphics.clear_graph ();
+	Graphics.auto_synchronize false;
+	Graphics.clear_graph ();
   let points = calcul_points m graph c in
   draw_points points;
   draw_edge graph points;
-  Graphics.auto_synchronize true;;
+	Graphics.auto_synchronize true;;
