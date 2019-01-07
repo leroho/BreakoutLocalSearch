@@ -50,15 +50,16 @@ let bls = fun graph t ->
   (* boucle principale de la recherche *)
   while !nbIter < 10000 do
     while in_local_search graph !nbIter tl !pa !om !c do (* tant que PA est non vide ou OM est non vide et ameliore la recherche*)
-      if Pqueue.is_empty !pa then
+      if Pqueue.is_empty !pa then (* on applique M2 si M1 n'est pas applicable *)
 	(let m = Move.M2 in
 	Move.apply_move m graph c pa om fc !nbIter tl)
-      else if Pqueue.is_empty !om then
+      else if Pqueue.is_empty !om then (* on applique M1 si M2 n'est pas applicable *)
 	(let m = Move.M1 in
 	Move.apply_move m graph c pa om fc !nbIter tl)
       else
-	(let m = Move.best_move !pa !om !fc in
-	Move.apply_move m graph c pa om fc !nbIter tl);
+	(let m = Move.best_move !pa !om !fc in    
+	Move.apply_move m graph c pa om fc !nbIter tl);   (* on applique le meilleur mouvement entre M1 et
+	la mise a jour des ensembles PA et OM et la tabou liste se fait dans la fonction apply_move*)
       nbIter := !nbIter + 1
     done;
     (*fc_array:= Array.append !fc_array [|(!nbIter, !fc*5)|];
