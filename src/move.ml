@@ -192,6 +192,7 @@ let apply_move = fun m graph c pa om obj iter tl ->
                 begin
                   let exist = Graph.SS.exists (fun x -> x=v) !c in
                   let neighbour = ref Graph.SS.empty in
+				  let new_tl = Array.map (fun elt -> elt) tl in
                   let somme = (Graph.SS.fold
                                  (fun x somme -> if (Graph.is_voisin graph x v) then
                                    (
@@ -202,7 +203,7 @@ let apply_move = fun m graph c pa om obj iter tl ->
 				   let i = x.Graph.id - 1 in
 				   let phi = 7 in 				
 				   let gamma =  phi + (Random.int (1 + (Pqueue.cardinal !om))) in  
-				   Array.set tl i (iter,gamma);
+				   Array.set new_tl i (iter,gamma);
                                    somme
                                  ) !c v.Graph.weight) in
                   let condition = (float_of_int somme) > (alpha *. (float_of_int !obj)) in 
@@ -213,7 +214,7 @@ let apply_move = fun m graph c pa om obj iter tl ->
                       let (new_pa, new_om) = new_pa_om m graph !c !pa !om in
 	              pa := new_pa;
 	              om := new_om;
-		      if 0.5 > Random.float 1. then iter_list queue
+		      if 0.5 > Random.float 1. then iter_list queue else Array.iteri (fun i elt-> Array.set tl i (new_tl.(i))) tl
                     end
                   else
                     iter_list queue
