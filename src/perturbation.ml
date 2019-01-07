@@ -55,9 +55,7 @@ let compute_set_A = fun c pa om f_best obj node tl iter ->
   let (move_max, delta_max) = max_m authorized_mv_list in
   if delta_max = (0 - max_int) then []
   else 
-    let set_a = List.fold_left (fun a (m,delta_m) ->
-      if m <> move_max && delta_m = delta_max then m::a else a ) [] authorized_mv_list in
-    move_max::set_a
+    List.fold_left (fun a (m,delta_m) -> if delta_m = delta_max then m::a else a ) [] authorized_mv_list
     
 let compute_p = fun w t p ->
   let proba = exp ((float_of_int (0 - w)) /. t) in
@@ -66,13 +64,8 @@ let compute_p = fun w t p ->
           
           
 let perturbation = fun graph pa om obj c l tl iter w alpha_r alpha_s t p0 f_best ->
-  Random.self_init () ;
-  (*Printf.printf "\nin perturbation-----------------------------------------------\n";
-  Printf.printf "w :       	    %d\n" w;
-  Printf.printf "l :              %d\n" l;*)
   let perturb = fun c l type_perturb alpha -> 
     for i=1 to l do
-	Random.self_init () ;
     begin
 	if type_perturb = 0 then
 	  begin
@@ -87,12 +80,12 @@ let perturbation = fun graph pa om obj c l tl iter w alpha_r alpha_s t p0 f_best
               [] -> ()
             | _ ->
                 begin
-                let move = choose_move move_array in
-				Move.apply_move move graph c pa om obj !iter tl;
+                  let move = choose_move move_array in
+		  Move.apply_move move graph c pa om obj !iter tl
                 end
-	end;
-	iter := !iter + 1
-      end
+	  end;
+      iter := !iter + 1
+    end
     done in
   
   if w = 0 then

@@ -139,11 +139,34 @@ let create_graph_DIMACS = fun filename ->
 		for i = 1 to !num_edges do
 			let line = input_line ic in
 			let l = Str.split (Str.regexp " ") line in
-			add_edge_id graph (int_of_string (List.nth l 1) ) (int_of_string (List.nth l 2) )
+			add_edge_id graph (int_of_string (List.nth l 1) ) (int_of_string (List.nth l 2))
 		done;
 		graph
 	
-
+let create_graph_DIMACSW = fun filename ->
+	let ic = open_in filename in
+	let comment_flag = ref true in
+	let num_edges = ref 0 in
+	let num_nodes = ref 0 in
+		while !comment_flag do
+			let line = input_line ic in
+			let line_type = String.get line 0 in
+			if line_type = 'p' then 
+				(let l = Str.split (Str.regexp " ") line in
+				num_edges := int_of_string (List.nth l 3);
+				num_nodes := int_of_string (List.nth l 2);
+				comment_flag := false )
+		done;
+		let graph = create_graph !num_nodes in
+		for i=1 to !num_edges do
+			change_weight_id graph i ((i mod 200) + 1)
+		done;
+		for i = 1 to !num_edges do
+			let line = input_line ic in
+			let l = Str.split (Str.regexp " ") line in
+			add_edge_id graph (int_of_string (List.nth l 1) ) (int_of_string (List.nth l 2))
+		done;
+		graph
 
 
 
