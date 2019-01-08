@@ -91,10 +91,14 @@ let bls = fun graph t ->
   (!fbest, !cbest);;
 
 let ()=
-  let demo = Graph.create_graph_DIMACS "data/dimacs_test4.txt" in
-  let time_start = Unix.time () in
-  let (fbest, c) = bls demo 1000. in
-  let time_end = Unix.time () in
-  Printf.printf "durrée : %f\n" (time_end -. time_start);
-  Printf.printf "fbest: %d\n" fbest;
-  if isClique demo c then Printf.printf "OK\n";;
+  if (Array.length Sys.argv) = 2 then
+	begin
+	  let demo = Graph.create_graph_DIMACS Sys.argv.(1) in
+	  let time_start = Unix.time () in
+	  let (fbest, c) = bls demo 1000. in
+	  let time_end = Unix.time () in
+	  Printf.printf "durrée : %f\n" (time_end -. time_start);
+	  Printf.printf "fbest: %d\n" fbest;
+  	  if isClique demo c then Printf.printf "OK\n"
+	end
+  else Printf.printf "Entrez le path du fichier DIMACS\n" ;;
