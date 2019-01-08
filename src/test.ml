@@ -1,6 +1,6 @@
 let () =
 	let n = 100 in
-  for j = 4 to 4 do
+  for j = 0 to 10 do
     let filename = String.concat "" ["stats";(string_of_int j);".txt"] in
     let dimacs_file = String.concat "" ["data/dimacs_test";(string_of_int j);".txt"] in
     let fic = open_out filename in
