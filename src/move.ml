@@ -1,5 +1,7 @@
+(* type mouvement*)
 type t = M1 | M2 | M3 of Graph.node  | M4 of float
 
+(* fonction de comparaison utilisee dans la Pqueue *) 
 let cmp = fun x y -> 0-(compare x y)
     
 (* authorized graph u l renvoie la liste des noeuds de la liste l qui sont voisins de u *)
@@ -20,7 +22,7 @@ let list_to_pqueue = fun l ->
   let q = Pqueue.empty in
   List.fold_left (fun a b -> Pqueue.insert ~cmp b.Graph.weight b a) q l
     
-(* create_pa_liste graph c renvoie une pqueue composé des noeuds autorisés à être ajouté à la clique c *)
+(* create_pa_liste graph c renvoie l'ensemble PA qui est une pqueue composé des noeuds autorisés à être ajouté à la clique c*)
 let create_pa1 = fun graph c->
   let rec create_pa_list = fun l current_pa->
     match l with
@@ -29,6 +31,7 @@ let create_pa1 = fun graph c->
   let pa_list = create_pa_list (Graph.SS.elements c) (Array.to_list graph.Graph.nodes) in
   list_to_pqueue pa_list
 
+(* create_pa2 est une autre version de la fonction create_pa1, elle le meme parametre et renvoie le meme resultat*)
 let create_pa2 = fun graph c->
   let n = Graph.SS.cardinal c in
   let c_array = Array.of_list (Graph.SS.elements c) in
@@ -57,7 +60,6 @@ let create_pa2 = fun graph c->
 
      
 (* create_om graph c revoie la pqueue de tous les couple de noeuds (u, v) pouvant être "swaper" ordonnés selon (v.weight - u.weight) *) 
-    
 let create_om = fun graph c ->
   let n = Graph.SS.cardinal c in
   let c_array = Array.of_list (Graph.SS.elements c) in
@@ -86,6 +88,8 @@ let create_om = fun graph c ->
 	  else iter_list queue om
 	end in
   iter_list (Array.to_list graph.Graph.nodes) (Pqueue.empty)
+
+
 
 let new_pa_om = fun m graph c pa om ->
   match m with
@@ -124,6 +128,7 @@ let new_pa_om = fun m graph c pa om ->
       end
   | M4 alpha -> (create_pa2 graph c, create_om graph c)
     
+ (* evalue un mouvement et retourne la nouvelle valeur de la fonction objective *)   
 let eval_move = fun m pa om obj->
   match m with
     M1 ->
@@ -139,18 +144,21 @@ let eval_move = fun m pa om obj->
   | M3 node -> 
       obj - (Graph.get_weight node) 
   | _ -> failwith "non utilisée"
-        
+
+(* renvoie le meilleur mouvement entre M1 et M2 *)
 let best_move = fun pa om obj ->
   let obj_m1 = eval_move M1 pa om obj in
   let obj_m2 = eval_move M2 pa om obj in
   if (obj_m1 < obj_m2) then M2 else M1
-    
+
+(* fonction qui applique le mouvement passe en parametre, il fait la mise a jour de la clique des ensembles PA et OM, et de 
+la tabou list *)
 let apply_move = fun m graph c pa om obj iter tl ->
   match m with
-    M1 -> 
+    M1 ->  
       begin
         let (prio, v, reste_pa) = Pqueue.extract ~cmp !pa in
-        c := Graph.SS.add v !c;
+        c := Graph.SS.add v !c; (* on ajoute le noeud avec le poids maximal dans la clique*)
         obj := !obj + prio;
         let (new_pa, new_om) = new_pa_om m graph !c !pa !om in
 	pa := new_pa;
@@ -158,12 +166,12 @@ let apply_move = fun m graph c pa om obj iter tl ->
       end
   | M2 ->
       begin
-        let (prio, (u, v), reste_om) = Pqueue.extract ~cmp !om in
+        let (prio, (u, v), reste_om) = Pqueue.extract ~cmp !om in 
 	let i = u.Graph.id - 1 in
         let phi = 7 in 				
 	let gamma =  phi + (Random.int (1 + (Pqueue.cardinal !om))) in  
-	Array.set tl i (iter,gamma);
-        c := Graph.SS.remove u !c;
+	Array.set tl i (iter,gamma); (* on met a jour la tabou liste *)
+        c := Graph.SS.remove u !c;   (* on fait un swap entre u et v *)
         c := Graph.SS.add v !c;
         obj := !obj + prio;
         let (new_pa, new_om) = new_pa_om m graph !c !pa !om in
@@ -176,7 +184,7 @@ let apply_move = fun m graph c pa om obj iter tl ->
 	let phi = 7 in 				
 	let gamma =  phi + (Random.int (1 + (Pqueue.cardinal !om))) in  
 	Array.set tl i (iter,gamma);
-	c := Graph.SS.remove node !c;
+	c := Graph.SS.remove node !c; (* on retire un noeud aleatoire de la clique pour perturber *)
 	obj := !obj - node.Graph.weight;
         let (new_pa, new_om) = new_pa_om m graph !c !pa !om in
 	pa := new_pa;
@@ -188,7 +196,8 @@ let apply_move = fun m graph c pa om obj iter tl ->
         let rec iter_list = fun l ->
             match l with
               [] -> ()
-            | v::queue ->
+            | v::queue -> (* on parcours l'ensemble OC, qui est l'ensemble des noeuds qui n'appartient pas a la clique pour trouver
+	    		     un noeud qui verifie la condition  ci-dessous *)
                 begin
                   let exist = Graph.SS.exists (fun x -> x=v) !c in
                   let neighbour = ref Graph.SS.empty in
