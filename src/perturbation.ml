@@ -4,10 +4,12 @@
 let func_eval = fun c ->
   let sum_weight = 0. in
   Graph.SS.fold (fun a b -> a.Graph.weight +. b) c sum_weight;;*)
+  
 (*choisi le premier movement de la list*)
 let choose_move = fun move_list ->
   (Array.of_list move_list).(Random.int (List.length move_list))
-        
+
+(* fonction de comparaison utilisee dans la Pqueue *) 
 let cmp = fun x y -> 0-(compare x y)
     
 (*let update_vertex = fun graph c move ->
@@ -15,6 +17,8 @@ let cmp = fun x y -> 0-(compare x y)
   Move.M1 -> Move.new_pa_m1 graph new_queue v
   | Move.M2 -> Move.new_pa_m2 graph c*)
     
+(* fonction qui renvoie true si le mouvement n'est pas interdit en verifiant dans la tabou liste si
+    c'est possible de remettre un noeud dans la clique, c.a.d si au moins gamma iteration sont passees depuis sa supression de la clique*)
 let not_prohibited = fun m tl iter pa om ->
   match m with 
     Move.M1 ->
