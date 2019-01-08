@@ -36,7 +36,8 @@ let not_prohibited = fun m tl iter pa om ->
         (iter - last_iter) > gamma 
   | Move.M3 node -> true
   | _ -> failwith "not_prohibited:mouvement M4 non utilisée"   
-        
+    
+(* cette fonction retourne l'ensemble A des mouvements non interdits et maximise la fonction objective *)
 let compute_set_A = fun c pa om f_best obj node tl iter ->
   let delta = fun m ->
     match m with
@@ -63,23 +64,24 @@ let compute_set_A = fun c pa om f_best obj node tl iter ->
   else 
     List.fold_left (fun a (m,delta_m) -> if delta_m = delta_max then m::a else a ) [] authorized_mv_list
     
-
+(* cette fonction calcule la probabilite p pour faire la perturbation dirigee *)
 let compute_p = fun w t p ->
   let proba = exp ((float_of_int (0 - w)) /. t) in
   if  proba > p then proba
   else p
           
-          
+
+(* cette fonction boucle l fois et realise les perturbations suivant la valeur w *)
 let perturbation = fun graph pa om obj c l tl iter w alpha_r alpha_s t p0 f_best ->
   let perturb = fun c l type_perturb alpha -> 
-    for i=1 to l do
+    for i=1 to l do (* on boucle l fois *)
     begin
-	if type_perturb = 0 then
+	if type_perturb = 0 then (* si type de perturbation est 0 on realise la perturbation aleatoire avec le mouvement M4 *)
 	  begin
 	    let move = Move.M4 alpha in
 	    Move.apply_move move graph c pa om obj !iter tl;
 	  end
-	else
+	else (* sinon on fait la perturbation dirigee avec les mouvements de l'ensemble A *)
 	  begin
 	    let node = (Array.of_list (Graph.SS.elements !c)).(Random.int (Graph.SS.cardinal !c)) in
 	    let move_array = compute_set_A c !pa !om !f_best !obj node tl !iter in
@@ -95,14 +97,14 @@ let perturbation = fun graph pa om obj c l tl iter w alpha_r alpha_s t p0 f_best
     end
     done in
   
-  if w = 0 then
+  if w = 0 then   (* si w = 0 on fait la perturbation aleatoire forte avec M4 et le parametre alpha_s *)
      perturb c l 0 alpha_s
   else
     begin
       let p = compute_p w t p0 in
-      if p < Random.float 1. then
-         perturb c l 1 0.
+      if p < Random.float 1. then 
+         perturb c l 1 0.	(* avec probabilite p on fait la perturbation dirigee avec les mouvement de l'ensemble A*)
       else
-        perturb c l 0 alpha_r
+        perturb c l 0 alpha_r (* avec probabilite 1-p on fait la perturbation aleatoire avec M4 et le parametre alpha_r *)
     end
       
