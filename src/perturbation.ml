@@ -22,12 +22,11 @@ let cmp = fun x y -> 0-(compare x y)
 let not_prohibited = fun m tl iter pa om ->
   match m with 
     Move.M1 ->
-      if Pqueue.is_empty pa then false 
-      else 
-      	let (prio, u, reste_pa) = Pqueue.extract ~cmp pa in
+      if Pqueue.is_empty pa then false else 
+	let (prio, u, reste_pa) = Pqueue.extract ~cmp pa in
 	let i = u.Graph.id - 1 in 
         let (last_iter, gamma) = tl.(i) in
-        (iter - last_iter) > gamma 
+	(iter - last_iter) > gamma 
   | Move.M2 ->
       if Pqueue.is_empty om then false
       else
@@ -35,8 +34,8 @@ let not_prohibited = fun m tl iter pa om ->
         let i = v.Graph.id - 1 in 
         let (last_iter, gamma) = tl.(i) in
         (iter - last_iter) > gamma 
-  | Move.M3 -> true
-  | _ -> failwith "not_prohibited:mouvement M3, M4 non utilisée"    
+  | Move.M3 node -> true
+  | _ -> failwith "not_prohibited:mouvement M4 non utilisée"   
         
 let compute_set_A = fun c pa om f_best obj node tl iter ->
   let delta = fun m ->
