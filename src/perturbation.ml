@@ -35,6 +35,7 @@ let not_prohibited = fun m tl iter pa om ->
         let i = v.Graph.id - 1 in 
         let (last_iter, gamma) = tl.(i) in
         (iter - last_iter) > gamma 
+  | Move.M3 -> true
   | _ -> failwith "not_prohibited:mouvement M3, M4 non utilisée"    
         
 let compute_set_A = fun c pa om f_best obj node tl iter ->
@@ -63,6 +64,7 @@ let compute_set_A = fun c pa om f_best obj node tl iter ->
   else 
     List.fold_left (fun a (m,delta_m) -> if delta_m = delta_max then m::a else a ) [] authorized_mv_list
     
+
 let compute_p = fun w t p ->
   let proba = exp ((float_of_int (0 - w)) /. t) in
   if  proba > p then proba
